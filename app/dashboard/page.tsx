@@ -10,6 +10,14 @@ import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import PaginationLinks from "@/components/PaginationLinks";
 
+interface Paginator {
+  current_page: number;
+  last_page: number;
+  links: { url: string | null; label: string; active: boolean }[];
+  total: number;
+  per_page: number;
+}
+
 interface ProductType {
   id?: number;
   title: string;
@@ -24,9 +32,15 @@ const Dashboard: React.FC = () => {
   const router = useRouter(); // Use router hook
   const searchParams = useSearchParams()
   const page = searchParams.get('page')
-  const [products, setProducts] = React.useState<{ data: ProductType[], paginator: any }>({
+  const [products, setProducts] = React.useState<{ data: ProductType[], paginator: Paginator }>({
     data: [],
-    paginator: {},
+    paginator: {
+      current_page: 1,
+      last_page: 1,
+      links: [],
+      total: 0,
+      per_page: 10,
+    },
   });
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
   const defaultImg =
@@ -68,7 +82,7 @@ const Dashboard: React.FC = () => {
       // const page = router.query?.page || 1; // Ensure router.query is defined before accessing 'page'
       fetchAllProducts(page || "1");
     }
-  }, [authToken, routerMounted, page]); // Add routerMounted and router.query as dependencies
+  }, [authToken, routerMounted, page, router]); // Add routerMounted and router.query as dependencies
 
   const fetchAllProducts = async (page: string | number) => {
     try {

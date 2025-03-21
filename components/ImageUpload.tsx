@@ -19,6 +19,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ listingImage, onImageChange }
     setPreview(listingImage || defaultImage); // Update preview when listingImage changes
   }, [listingImage]);
 
+  useEffect(() => {
+    // Example effect logic
+  }, [listingImage, defaultImage, preview, oversizeImage, showRevertBtn]);
+
   const imageSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
