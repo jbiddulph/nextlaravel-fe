@@ -16,6 +16,8 @@ interface Paginator {
   links: { url: string | null; label: string; active: boolean }[];
   total: number;
   per_page: number;
+  from: number; // Add 'from' property
+  to: number;   // Add 'to' property
 }
 
 interface ProductType {
@@ -40,6 +42,8 @@ const Dashboard: React.FC = () => {
       links: [],
       total: 0,
       per_page: 10,
+      from: 0,
+      to: 0,
     },
   });
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
