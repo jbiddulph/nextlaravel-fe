@@ -19,7 +19,7 @@ interface ProductType {
 }
 
 const Dashboard: React.FC = () => {
-  const { isLoading, authToken } = myAppHook();
+  const { authToken } = myAppHook();
   const [routerMounted, setRouterMounted] = useState(false);  // Track if router is mounted
   const router = useRouter(); // Use router hook
   const searchParams = useSearchParams()
