@@ -30,6 +30,7 @@ interface SchoolType {
   address3?: string;
   town?: string;
   establishment_type_group?: string;
+  phase_of_education?: string;
 }
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""; // Set Mapbox access token
@@ -60,10 +61,26 @@ const Schools: React.FC = () => {
     address3: "",
     town: "",
     establishment_type_group: "",
+    phase_of_education: "",
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null); // Ref for the map container
+  const mapRef = useRef<mapboxgl.Map | null>(null); // Ref to store the map instance
+
+  const [filters, setFilters] = useState({
+    Primary: true,
+    Secondary: true,
+    "Not applicable": true,
+    Other: true,
+  });
+
+  const handleFilterChange = (filter: string) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filter]: !prevFilters[filter],
+    }));
+  };
 
   useEffect(() => {
     if (!authToken) {
@@ -82,9 +99,85 @@ const Schools: React.FC = () => {
         zoom: 10, // Initial zoom level
       });
 
+      mapRef.current = map; // Store the map instance in the ref
+
+      map.on("load", () => {
+        // Add the source for the school layer
+        map.addSource("schools", {
+          type: "vector",
+          url: "mapbox://jbiddulph.schools", // Tileset ID
+        });
+
+        // Add a layer to display circles for the school locations
+        map.addLayer({
+          id: "school-circles",
+          type: "circle",
+          source: "schools",
+          "source-layer": "schools", // Layer name in the Tileset
+          paint: {
+            "circle-radius": 9, // Circle size
+            "circle-color": [
+              "match",
+              ["get", "phase_of_education"], // Get the phase_of_education property
+              "Primary", filters.Primary ? "#007cbf" : "transparent", // Blue for Primary
+              "Secondary", filters.Secondary ? "#800080" : "transparent", // Purple for Secondary
+              "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent", // Pink for Not applicable
+              filters.Other ? "#666666" : "transparent", // Default color (gray) for other values
+            ],
+          },
+        });
+
+        // Add popup functionality
+        const popup = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+        });
+
+        // Mouseenter event to show popup
+        map.on("mouseenter", "school-circles", (e) => {
+          map.getCanvas().style.cursor = "pointer";
+
+          const coordinates = e.lngLat;
+          const properties = e.features?.[0]?.properties;
+
+          if (properties) {
+            popup
+              .setLngLat(coordinates)
+              .setHTML(`
+                <div>
+                  <strong>${properties.establishment_name}</strong><br />
+                  ${properties.street || ""} ${properties.locality || ""}<br />
+                  ${properties.town || ""}
+                </div>
+              `)
+              .addTo(map);
+          }
+        });
+
+        // Mouseout event to hide popup
+        map.on("mouseout", "school-circles", () => {
+          map.getCanvas().style.cursor = "";
+          popup.remove();
+        });
+      });
+
       return () => map.remove(); // Cleanup map instance on component unmount
     }
-  }, []);
+  }, []); // Only run on mount
+
+  useEffect(() => {
+    const map = mapRef.current; // Access the map instance from the ref
+    if (map && map.getLayer("school-circles")) {
+      map.setPaintProperty("school-circles", "circle-color", [
+        "match",
+        ["get", "phase_of_education"],
+        "Primary", filters.Primary ? "#007cbf" : "transparent",
+        "Secondary", filters.Secondary ? "#800080" : "transparent",
+        "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent",
+        filters.Other ? "#666666" : "transparent",
+      ]);
+    }
+  }, [filters]); // Update only when filters change
 
   const fetchAllSchools = async (page: string | number) => {
     try {
@@ -125,6 +218,7 @@ const Schools: React.FC = () => {
       address3: "",
       town: "",
       establishment_type_group: "",
+      phase_of_education: "",
     });
     setIsEditing(false);
   };
@@ -173,14 +267,31 @@ const Schools: React.FC = () => {
   return (
     <>
       <div className="bg-white shadow-md h-[100vh] flex items-center flex-col md:flex-row justify-between bg-gray-100 py-6 px-6">
-        <div ref={mapContainerRef} className="w-full h-[81vh] mb-6" />
+        <div ref={mapContainerRef} className="w-full h-[95%] mb-6" />
         <div className="p-6 w-full">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-2">Filters</h3>
+            <div className="flex gap-4">
+              {["Primary", "Secondary", "Not applicable", "Other"].map((filter) => (
+                <label key={filter} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={filters[filter]}
+                    onChange={() => handleFilterChange(filter)}
+                    className="form-checkbox"
+                  />
+                  {filter}
+                </label>
+              ))}
+            </div>
+          </div>
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Address</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Phase</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -195,6 +306,7 @@ const Schools: React.FC = () => {
                     {school.town && <span>{school.town}</span>}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">{school.establishment_type_group}</td>
+                  <td className="border border-gray-300 px-4 py-2">{school.phase_of_education}</td>
                   <td className="border border-gray-300 px-4 py-2">
                     <button
                       className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition mr-2"

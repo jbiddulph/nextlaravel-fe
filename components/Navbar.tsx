@@ -10,7 +10,7 @@ const NavBar = () => {
         <nav className="bg-indigo-600 flex h-[60px] items-center justify-between w-full">
             <div className="container mx-auto flex items-center justify-between py-4">
                 <Link className="text-white text-xl font-bold" href="/">
-                    MyNextApp
+                    Schoolz
                 </Link>
                 <button
                     className="text-white md:hidden"
