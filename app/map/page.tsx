@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import "mapbox-gl/dist/mapbox-gl.css"; // Import Mapbox GL CSS
+import React, { useEffect, useState, useRef } from "react";
+import mapboxgl from "mapbox-gl"; // Import Mapbox GL
 import { useSearchParams, useRouter } from "next/navigation"; // You need to use 'next/navigation' for the App Router in Next.js 13
 import axios from "axios";
 import { myAppHook } from "@/context/AppProvider";
@@ -29,6 +31,8 @@ interface SchoolType {
   town?: string;
   establishment_type_group?: string;
 }
+
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""; // Set Mapbox access token
 
 const Schools: React.FC = () => {
   const { authToken } = myAppHook();
@@ -59,6 +63,7 @@ const Schools: React.FC = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null); // Ref for the map container
 
   useEffect(() => {
     if (!authToken) {
@@ -67,6 +72,19 @@ const Schools: React.FC = () => {
     }
     fetchAllSchools(page || "1");
   }, [authToken, page, router]);
+
+  useEffect(() => {
+    if (mapContainerRef.current) {
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current, // Map container
+        style: "mapbox://styles/mapbox/streets-v11", // Map style
+        center: [-0.1276, 51.5072], // Initial map center [lng, lat] (e.g., London)
+        zoom: 10, // Initial zoom level
+      });
+
+      return () => map.remove(); // Cleanup map instance on component unmount
+    }
+  }, []);
 
   const fetchAllSchools = async (page: string | number) => {
     try {
@@ -154,13 +172,12 @@ const Schools: React.FC = () => {
 
   return (
     <>
-      <div className="flex items-center justify-center bg-gray-100 py-6 px-6 flex-col">
-        <div className="bg-white shadow-md rounded-lg p-6 w-full">
-          <table className="w-full border-collapse border border-gray-300">
+      <div className="bg-white shadow-md h-[100vh] flex items-center flex-col md:flex-row justify-between bg-gray-100 py-6 px-6">
+        <div ref={mapContainerRef} className="w-full h-[81vh] mb-6" />
+        <div className="p-6 w-full">
+          <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">UPRN</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Address</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
@@ -170,8 +187,6 @@ const Schools: React.FC = () => {
             <tbody>
               {schools.data.map((school, index) => (
                 <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">{school.id}</td>
-                  <td className="border border-gray-300 px-4 py-2">{school.uprn}</td>
                   <td className="border border-gray-300 px-4 py-2">{school.establishment_name}</td>
                   <td className="border border-gray-300 px-4 py-2">
                     {school.street && <span>{school.street}, </span>}
@@ -192,10 +207,11 @@ const Schools: React.FC = () => {
               ))}
             </tbody>
           </table>
+          <div className="container mx-auto bg-gray-100 mt-4">
+            <PaginationLinks section="schools" paginator={schools.paginator} />
+            </div>
         </div>
-        <div className="container mx-auto bg-gray-100 mt-4">
-          <PaginationLinks section="schools" paginator={schools.paginator} />
-        </div>
+        
       </div>
 
       {/* EditSchoolForm Modal */}

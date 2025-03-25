@@ -35,7 +35,7 @@ const PaginationLinks = ({ section, paginator }: PaginationLinksProps) => {
               {link.url ? (
                 <Link
                   href={`/${section}?page=${link.label}`}  // Dynamically add section and page
-                  className={`grid h-12 w-12 place-items-center border-x border-slate-50 bg-white dark:border-slate-800 dark:bg-slate-900 ${
+                  className={`grid h-12 w-12 place-items-center border-x border-slate-50 bg-white ${
                     link.active
                       ? 'font-bold text-indigo-500 dark:text-indigo-400'
                       : 'hover:bg-slate-300 dark:hover:bg-slate-500'
@@ -49,7 +49,7 @@ const PaginationLinks = ({ section, paginator }: PaginationLinksProps) => {
                   dangerouslySetInnerHTML={{
                     __html: makeLabel(link.label),
                   }}
-                  className="grid h-12 w-12 place-items-center border-x border-slate-50 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-300"
+                  className="grid h-12 w-12 place-items-center border-x border-slate-50 bg-white text-slate-300"
                 />
               )}
             </React.Fragment>
@@ -62,11 +62,11 @@ const PaginationLinks = ({ section, paginator }: PaginationLinksProps) => {
       {/* Pagination info */}
       <div>
         {hasLinks ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600">
             Showing {paginator.from} to {paginator.to} of {paginator.total} results
           </p>
         ) : (
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600">
             No results to display
           </p>
         )}
