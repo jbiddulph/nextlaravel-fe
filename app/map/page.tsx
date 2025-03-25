@@ -39,7 +39,7 @@ const Schools: React.FC = () => {
   const { authToken } = myAppHook();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const page = searchParams.get("page");
+  const page = searchParams ? searchParams.get("page") : null;
   const [schools, setSchools] = useState<{ data: SchoolType[]; paginator: Paginator }>({
     data: [],
     paginator: {
@@ -68,14 +68,19 @@ const Schools: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null); // Ref for the map container
   const mapRef = useRef<mapboxgl.Map | null>(null); // Ref to store the map instance
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    Primary: boolean;
+    Secondary: boolean;
+    "Not applicable": boolean;
+    Other: boolean;
+  }>({
     Primary: true,
     Secondary: true,
     "Not applicable": true,
     Other: true,
   });
 
-  const handleFilterChange = (filter: string) => {
+  const handleFilterChange = (filter: keyof typeof filters) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
       [filter]: !prevFilters[filter],
@@ -272,7 +277,7 @@ const Schools: React.FC = () => {
           <div className="mb-4">
             <h3 className="text-lg font-semibold mb-2">Filters</h3>
             <div className="flex gap-4">
-              {["Primary", "Secondary", "Not applicable", "Other"].map((filter) => (
+              {(["Primary", "Secondary", "Not applicable", "Other"] as Array<keyof typeof filters>).map((filter) => (
                 <label key={filter} className="flex items-center gap-2">
                   <input
                     type="checkbox"
