@@ -231,6 +231,7 @@ const Dashboard: React.FC = () => {
               <div className="mb-3">
                 <ImageUpload
                   listingImage={formData.banner_image}
+                  preset="nextProducts"
                   onImageChange={handleImageChange}
                 />
               </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import ImageUpload from "./ImageUpload";
 
 interface SchoolType {
   id?: string;
@@ -8,6 +9,7 @@ interface SchoolType {
   address3?: string;
   town?: string;
   establishment_type_group?: string;
+  featured_image?: string;
 }
 
 interface EditSchoolFormProps {
@@ -31,7 +33,12 @@ const EditSchoolForm: React.FC<EditSchoolFormProps> = ({
       [event.target.name]: event.target.value,
     });
   };
-
+  const handleImageChange = (imageUrl: string | null) => {
+    setFormData({
+      ...formData,
+      featured_image: imageUrl || "",
+    });
+  };
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -47,6 +54,11 @@ const EditSchoolForm: React.FC<EditSchoolFormProps> = ({
           {isEditing ? "Edit" : "Add"} School
         </h4>
         <form onSubmit={handleFormSubmit}>
+          <ImageUpload
+            listingImage={formData.featured_image}
+            preset="nextSchools"
+            onImageChange={handleImageChange}
+          />
           <input
             className="border border-gray-300 rounded w-full p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             name="establishment_name"

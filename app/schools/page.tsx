@@ -28,6 +28,7 @@ interface SchoolType {
   address3?: string;
   town?: string;
   establishment_type_group?: string;
+  featured_image?: string;
 }
 
 const Schools: React.FC = () => {
@@ -47,6 +48,8 @@ const Schools: React.FC = () => {
       to: 0,
     },
   });
+  const defaultImg =
+    "https://res.cloudinary.com/dagb1kdy2/image/upload/v1742230696/listings/iv6anzgdy1cpymxhddew.jpg";
   const [formData, setFormData] = useState<SchoolType>({
     id: "",
     uprn: 0,
@@ -56,6 +59,7 @@ const Schools: React.FC = () => {
     address3: "",
     town: "",
     establishment_type_group: "",
+    featured_image: defaultImg,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -107,6 +111,7 @@ const Schools: React.FC = () => {
       address3: "",
       town: "",
       establishment_type_group: "",
+      featured_image: "",
     });
     setIsEditing(false);
   };
@@ -159,7 +164,7 @@ const Schools: React.FC = () => {
           <table className="w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
+                <th className="border border-gray-300 px-4 py-2 text-left">Pic</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">UPRN</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
                 <th className="border border-gray-300 px-4 py-2 text-left">Address</th>
@@ -170,7 +175,7 @@ const Schools: React.FC = () => {
             <tbody>
               {schools.data.map((school, index) => (
                 <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">{school.id}</td>
+                  <td className="border border-gray-300 px-4 py-2"><img src={school.featured_image} alt="" width={100} height={100} /></td>
                   <td className="border border-gray-300 px-4 py-2">{school.uprn}</td>
                   <td className="border border-gray-300 px-4 py-2">{school.establishment_name}</td>
                   <td className="border border-gray-300 px-4 py-2">

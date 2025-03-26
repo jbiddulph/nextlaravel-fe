@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 
 interface ImageUploadProps {
   listingImage?: string;
+  preset: string; // Add the preset prop
   onImageChange: (imageUrl: string | null) => void;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ listingImage, onImageChange }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ listingImage, preset, onImageChange }) => {
   const defaultImage =
     listingImage ||
     'https://res.cloudinary.com/dagb1kdy2/image/upload/v1742230696/listings/iv6anzgdy1cpymxhddew.jpg';
@@ -37,7 +38,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ listingImage, onImageChange }
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'nextProducts'); // Use your actual preset
+    formData.append('upload_preset', preset); // Use the preset prop dynamically
     formData.append('folder', 'next'); // 💡 This ensures the image is stored inside 'listings/'
 
     const response = await fetch(
