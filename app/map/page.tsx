@@ -6,7 +6,6 @@ import mapboxgl from "mapbox-gl"; // Import Mapbox GL
 import { useSearchParams, useRouter } from "next/navigation"; // You need to use 'next/navigation' for the App Router in Next.js 13
 import axios from "axios";
 import { myAppHook } from "@/context/AppProvider";
-import PaginationLinks from "@/components/PaginationLinks";
 import EditSchoolForm from "@/components/EditSchoolForm"; // Import the new component
 import toast from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
