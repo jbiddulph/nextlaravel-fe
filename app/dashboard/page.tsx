@@ -9,24 +9,8 @@ import ImageUpload from "@/components/ImageUpload";
 import toast from "react-hot-toast";
 import Swal from "sweetalert2";
 import PaginationLinks from "@/components/PaginationLinks";
-
-interface Paginator {
-  current_page: number;
-  last_page: number;
-  links: { url: string | null; label: string; active: boolean }[];
-  total: number;
-  per_page: number;
-  from: number; // Add 'from' property
-  to: number;   // Add 'to' property
-}
-
-interface ProductType {
-  id?: number;
-  title: string;
-  description?: string;
-  cost?: number;
-  banner_image: string;
-}
+import { Paginator } from "@/types/Paginator"; // Import the shared Paginator interface
+import { ProductType } from "@/types/ProductType"; // Import the shared ProductType interface
 
 const Dashboard: React.FC = () => {
   const { authToken } = myAppHook();

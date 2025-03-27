@@ -1,16 +1,7 @@
 import React from "react";
 import ImageUpload from "./ImageUpload";
-
-interface SchoolType {
-  id?: string;
-  establishment_name: string;
-  street?: string;
-  locality?: string;
-  address3?: string;
-  town?: string;
-  establishment_type_group?: string;
-  featured_image?: string;
-}
+import { Button } from "./ui/button";
+import { SchoolType } from "@/types/SchoolType";
 
 interface EditSchoolFormProps {
   formData: SchoolType;
@@ -103,19 +94,19 @@ const EditSchoolForm: React.FC<EditSchoolFormProps> = ({
             placeholder="Establishment Type Group"
           />
           <div className="flex justify-between">
-            <button
-              className="bg-indigo-500 text-white py-2 px-4 rounded hover:bg-indigo-600 transition"
+            <Button
+              variant="primary"
               type="submit"
             >
               {isEditing ? "Update" : "Add"} School
-            </button>
-            <button
-              className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
+            </Button>
+            <Button
+              className="primary"
               type="button"
               onClick={handleCloseModal}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </div>

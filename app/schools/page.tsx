@@ -7,29 +7,8 @@ import { myAppHook } from "@/context/AppProvider";
 import PaginationLinks from "@/components/PaginationLinks";
 import EditSchoolForm from "@/components/EditSchoolForm"; // Import the new component
 import toast from "react-hot-toast";
-
-interface Paginator {
-  current_page: number;
-  last_page: number;
-  links: { url: string | null; label: string; active: boolean }[];
-  total: number;
-  per_page: number;
-  from: number; // Add 'from' property
-  to: number;   // Add 'to' property
-}
-
-interface SchoolType {
-  id?: string;
-  uprn?: number;
-  establishment_name: string;
-  address?: string;
-  street?: string;
-  locality?: string;
-  address3?: string;
-  town?: string;
-  establishment_type_group?: string;
-  featured_image?: string;
-}
+import { Paginator } from "@/types/Paginator"; // Import the shared Paginator interface
+import { SchoolType } from "@/types/SchoolType"; // Import the shared SchoolType interface
 
 const Schools: React.FC = () => {
   const { authToken } = myAppHook();

@@ -9,29 +9,11 @@ import { myAppHook } from "@/context/AppProvider";
 import PaginationLinks from "@/components/PaginationLinks";
 import EditSchoolForm from "@/components/EditSchoolForm"; // Import the new component
 import toast from "react-hot-toast";
-
-interface Paginator {
-  current_page: number;
-  last_page: number;
-  links: { url: string | null; label: string; active: boolean }[];
-  total: number;
-  per_page: number;
-  from: number; // Add 'from' property
-  to: number;   // Add 'to' property
-}
-
-interface SchoolType {
-  id?: string;
-  uprn?: number;
-  establishment_name: string;
-  address?: string;
-  street?: string;
-  locality?: string;
-  address3?: string;
-  town?: string;
-  establishment_type_group?: string;
-  phase_of_education?: string;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
+import Table from "@/components/Table"; // Import the new Table component
+import { SchoolType } from "@/types/SchoolType"; // Import the shared SchoolType interface
+import { Paginator } from "@/types/Paginator"; // Import the shared Paginator interface
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""; // Set Mapbox access token
 
@@ -273,60 +255,36 @@ const Schools: React.FC = () => {
     <>
       <div className="bg-white shadow-md h-[100vh] flex items-center flex-col md:flex-row justify-between bg-gray-100 py-6 px-6">
         <div ref={mapContainerRef} className="w-full h-[95%] mb-6" />
-        <div className="p-6 w-full">
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Filters</h3>
-            <div className="flex gap-4">
-              {(["Primary", "Secondary", "Not applicable", "Other"] as Array<keyof typeof filters>).map((filter) => (
-                <label key={filter} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={filters[filter]}
-                    onChange={() => handleFilterChange(filter)}
-                    className="form-checkbox"
-                  />
-                  {filter}
-                </label>
-              ))}
-            </div>
-          </div>
-          <table className="w-full border-collapse border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Address</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Type</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Phase</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schools.data.map((school, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 px-4 py-2">{school.establishment_name}</td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {school.street && <span>{school.street}, </span>}
-                    {school.locality && <span>{school.locality}, </span>}
-                    {school.address3 && <span>{school.address3}, </span>}
-                    {school.town && <span>{school.town}</span>}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">{school.establishment_type_group}</td>
-                  <td className="border border-gray-300 px-4 py-2">{school.phase_of_education}</td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition mr-2"
-                      onClick={() => handleEditClick(school)}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="container mx-auto bg-gray-100 mt-4">
-            <PaginationLinks section="schools" paginator={schools.paginator} />
-            </div>
+        <div className="p-6 w-full h-full">
+            <Tabs defaultValue="account" className="w-100 h-100">
+                <TabsList>
+                    <TabsTrigger value="account">Filters</TabsTrigger>
+                    <TabsTrigger value="table">Table</TabsTrigger>
+                </TabsList>
+                <TabsContent value="account">
+                    <div className="mb-4">
+                    <h3 className="text-lg font-semibold mb-2">Filters</h3>
+                        <div className="flex gap-4">
+                        {(["Primary", "Secondary", "Not applicable", "Other"] as Array<keyof typeof filters>).map((filter) => (
+                            <label key={filter} className="flex items-center gap-2">
+                            <Checkbox 
+                                checked={filters[filter]}
+                                onCheckedChange={() => handleFilterChange(filter)}
+                            />
+                            {filter}
+                            </label>
+                        ))}
+                        </div>
+                    </div>
+                </TabsContent>
+                <TabsContent value="table">
+                    <Table 
+                        schools={schools.data} 
+                        paginator={schools.paginator} 
+                        handleEditClick={handleEditClick} 
+                    />
+                </TabsContent>
+            </Tabs>
         </div>
         
       </div>

@@ -1,12 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-
-interface Paginator {
-  links: { url: string | null; label: string; active: boolean }[];
-  from: number;
-  to: number;
-  total: number;
-}
+import { Paginator } from "@/types/Paginator"; // Import the shared Paginator interface
 
 interface PaginationLinksProps {
   section: string;  // Accept section as a prop
