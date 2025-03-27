@@ -14,6 +14,23 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Table from "@/components/Table"; // Import the new Table component
 import { SchoolType } from "@/types/SchoolType"; // Import the shared SchoolType interface
 import { Paginator } from "@/types/Paginator"; // Import the shared Paginator interface
+import { Button } from "@/components/ui/button"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""; // Set Mapbox access token
 
@@ -49,19 +66,38 @@ const Schools: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null); // Ref for the map container
   const mapRef = useRef<mapboxgl.Map | null>(null); // Ref to store the map instance
+  const rightPaneRef = useRef<HTMLDivElement | null>(null); // Ref for the right pane
+  const [isPaneOpen, setIsPaneOpen] = useState(true); // State to track pane visibility
+
+  const [status, setStatus] = useState<{
+    Open: boolean;
+    Closed: boolean;
+  }>({
+    Open: true,
+    Closed: false,
+  });
 
   const [filters, setFilters] = useState<{
+    Nursery: boolean;
     Primary: boolean;
     Secondary: boolean;
     "Not applicable": boolean;
     Other: boolean;
   }>({
+    Nursery: true,
     Primary: true,
     Secondary: true,
     "Not applicable": true,
     Other: true,
   });
 
+  const handleEstStatusChange = (state: keyof typeof status) => {
+    setStatus((prevStatus) => ({
+      ...prevStatus,
+      [state]: !prevStatus[state],
+    }));
+  };
+  
   const handleFilterChange = (filter: keyof typeof filters) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
@@ -104,12 +140,28 @@ const Schools: React.FC = () => {
           paint: {
             "circle-radius": 9, // Circle size
             "circle-color": [
-              "match",
-              ["get", "phase_of_education"], // Get the phase_of_education property
-              "Primary", filters.Primary ? "#007cbf" : "transparent", // Blue for Primary
-              "Secondary", filters.Secondary ? "#800080" : "transparent", // Purple for Secondary
-              "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent", // Pink for Not applicable
-              filters.Other ? "#666666" : "transparent", // Default color (gray) for other values
+              "case",
+              ["all", ["==", ["get", "establishment_status"], "Open"], status.Open],
+              [
+                "match",
+                ["get", "phase_of_education"], // Get the phase_of_education property
+                "Nursery", filters.Nursery ? "#FFDE21" : "transparent", // Yellow for Nursery
+                "Primary", filters.Primary ? "#007cbf" : "transparent", // Blue for Primary
+                "Secondary", filters.Secondary ? "#800080" : "transparent", // Purple for Secondary
+                "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent", // Pink for Not applicable
+                filters.Other ? "#666666" : "transparent", // Default color (gray) for other values
+              ],
+              ["all", ["==", ["get", "establishment_status"], "Closed"], status.Closed],
+              [
+                "match",
+                ["get", "phase_of_education"], // Get the phase_of_education property
+                "Nursery", filters.Nursery ? "#FFDE21" : "transparent", // Yellow for Nursery
+                "Primary", filters.Primary ? "#007cbf" : "transparent", // Blue for Primary
+                "Secondary", filters.Secondary ? "#800080" : "transparent", // Purple for Secondary
+                "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent", // Pink for Not applicable
+                filters.Other ? "#666666" : "transparent", // Default color (gray) for other values
+              ],
+              "transparent", // Default to transparent if establishment_status is not visible
             ],
           },
         });
@@ -156,15 +208,31 @@ const Schools: React.FC = () => {
     const map = mapRef.current; // Access the map instance from the ref
     if (map && map.getLayer("school-circles")) {
       map.setPaintProperty("school-circles", "circle-color", [
-        "match",
-        ["get", "phase_of_education"],
-        "Primary", filters.Primary ? "#007cbf" : "transparent",
-        "Secondary", filters.Secondary ? "#800080" : "transparent",
-        "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent",
-        filters.Other ? "#666666" : "transparent",
+        "case",
+        ["all", ["==", ["get", "establishment_status"], "Open"], status.Open],
+        [
+          "match",
+          ["get", "phase_of_education"],
+          "Nursery", filters.Nursery ? "#FFDE21" : "transparent",
+          "Primary", filters.Primary ? "#007cbf" : "transparent",
+          "Secondary", filters.Secondary ? "#800080" : "transparent",
+          "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent",
+          filters.Other ? "#666666" : "transparent",
+        ],
+        ["all", ["==", ["get", "establishment_status"], "Closed"], status.Closed],
+        [
+          "match",
+          ["get", "phase_of_education"],
+          "Nursery", filters.Nursery ? "#FFDE21" : "transparent",
+          "Primary", filters.Primary ? "#007cbf" : "transparent",
+          "Secondary", filters.Secondary ? "#800080" : "transparent",
+          "Not applicable", filters["Not applicable"] ? "#ff69b4" : "transparent",
+          filters.Other ? "#666666" : "transparent",
+        ],
+        "transparent",
       ]);
     }
-  }, [filters]); // Update only when filters change
+  }, [filters, status]); // Update when filters or status change
 
   const fetchAllSchools = async (page: string | number) => {
     try {
@@ -251,21 +319,69 @@ const Schools: React.FC = () => {
     }
   };
 
+  const togglePane = () => {
+    if (rightPaneRef.current && mapContainerRef.current && mapRef.current) {
+      // Toggle the pane state
+      setIsPaneOpen(!isPaneOpen);
+
+      if (isPaneOpen) {
+        // Close the right pane
+        rightPaneRef.current.style.display = "none"; // Hide the right pane
+        mapContainerRef.current.style.flex = "1"; // Make the map container take full width
+      } else {
+        // Open the right pane
+        rightPaneRef.current.style.display = "block"; // Show the right pane
+        mapContainerRef.current.style.flex = "2"; // Reset the map container to 2/3 width
+      }
+
+      // Notify Mapbox of the size change
+      setTimeout(() => {
+        mapRef.current?.resize();
+      }, 300); // Delay to match the CSS transition duration
+    }
+  };
+
   return (
     <>
-      <div className="bg-white shadow-md h-[100vh] flex items-center flex-col md:flex-row justify-between bg-gray-100 py-6 px-6">
-        <div ref={mapContainerRef} className="w-full h-[95%] mb-6" />
-        <div className="p-6 w-full h-full">
-            <Tabs defaultValue="account" className="w-100 h-100">
-                <TabsList>
-                    <TabsTrigger value="account">Filters</TabsTrigger>
-                    <TabsTrigger value="table">Table</TabsTrigger>
-                </TabsList>
-                <TabsContent value="account">
-                    <div className="mb-4">
-                    <h3 className="text-lg font-semibold mb-2">Filters</h3>
-                        <div className="flex gap-4">
-                        {(["Primary", "Secondary", "Not applicable", "Other"] as Array<keyof typeof filters>).map((filter) => (
+      <div className="bg-white shadow-md w-full h-[100vh] flex bg-gray-100">
+        {/* Map Container */}
+        <div
+          ref={mapContainerRef}
+          className="h-full transition-all duration-300 ease-in-out"
+          style={{
+            flex: isPaneOpen ? "2" : "1", // Dynamically adjust flex based on isPaneOpen
+          }}
+        />
+          {/* Toggle Button */}
+          <button
+            onClick={togglePane}
+            className="border z-10 fixed -right-[6px] top-1/2 transform -translate-y-1/2 bg-yellow-500 text-white px-3 py-2 rounded shadow-md hover:bg-blue-600 transition"
+          >
+            {isPaneOpen ? "→" : "←"}
+          </button>
+        {/* Right Pane */}
+        <div
+          id="rightPane"
+          ref={rightPaneRef}
+          className={`relative p-6 transition-transform duration-300 ease-in-out h-full bg-white shadow-md`}
+          style={{
+            flex: "1", // Fixed width for the right pane
+            display: isPaneOpen ? "block" : "none", // Hide or show the pane
+          }}
+        >
+          <Tabs defaultValue="account" className="w-100 h-100">
+            <TabsList>
+              <TabsTrigger value="account">Filters</TabsTrigger>
+              <TabsTrigger value="table">Table</TabsTrigger>
+            </TabsList>
+            <TabsContent value="account">
+              <div className="mb-4">
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="item-1">
+                    <AccordionTrigger>Phase of Education</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex gap-4">
+                        {(["Nursery", "Primary", "Secondary", "Not applicable", "Other"] as Array<keyof typeof filters>).map((filter) => (
                             <label key={filter} className="flex items-center gap-2">
                             <Checkbox 
                                 checked={filters[filter]}
@@ -274,19 +390,60 @@ const Schools: React.FC = () => {
                             {filter}
                             </label>
                         ))}
-                        </div>
-                    </div>
-                </TabsContent>
-                <TabsContent value="table">
-                    <Table 
-                        schools={schools.data} 
-                        paginator={schools.paginator} 
-                        handleEditClick={handleEditClick} 
-                    />
-                </TabsContent>
-            </Tabs>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-2">
+                    <AccordionTrigger>Establishment Status</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex gap-4">
+                        {(["Open", "Closed"] as Array<keyof typeof status>).map((state) => (
+                            <label key={state} className="flex items-center gap-2">
+                            <Checkbox 
+                                checked={status[state]}
+                                onCheckedChange={() => handleEstStatusChange(state)}
+                            />
+                            {state}
+                            </label>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="item-3">
+                    <AccordionTrigger>Is it wee wee?</AccordionTrigger>
+                    <AccordionContent>
+                      Yes. It adheres to the WAI-ARIA design pattern.
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </TabsContent>
+            <TabsContent value="table">
+              <Table
+                schools={schools.data}
+                paginator={schools.paginator}
+                handleEditClick={handleEditClick}
+              />
+            </TabsContent>
+          </Tabs>
+          <Drawer>
+            <DrawerTrigger>Open</DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Are you absolutely sure?</DrawerTitle>
+                <DrawerDescription>This action cannot be undone.</DrawerDescription>
+              </DrawerHeader>
+              <DrawerFooter>
+                <Button>Submit</Button>
+                <DrawerClose asChild>
+                  <div>
+                    <Button variant="outline">Cancel</Button>
+                  </div>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
         </div>
-        
       </div>
 
       {/* EditSchoolForm Modal */}
